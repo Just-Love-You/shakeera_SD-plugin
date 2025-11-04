@@ -2,114 +2,146 @@ import {
   ButtonItem,
   PanelSection,
   PanelSectionRow,
-  Navigation,
-  staticClasses
+  staticClasses,
 } from "@decky/ui";
-import {
-  addEventListener,
-  removeEventListener,
-  callable,
-  definePlugin,
-  toaster,
-  // routerHook
-} from "@decky/api"
-import { useState } from "react";
-import { FaShip } from "react-icons/fa";
+import { definePlugin } from "@decky/api";
+import { useState, useEffect } from "react";
+import { FaAlignCenter } from "react-icons/fa";
 
-// import logo from "../assets/logo.png";
+const DOT_ID = "shakeera-center-circle";
 
-// This function calls the python function "add", which takes in two numbers and returns their sum (as a number)
-// Note the type annotations:
-//  the first one: [first: number, second: number] is for the arguments
-//  the second one: number is for the return value
-const add = callable<[first: number, second: number], number>("add");
+function _getTopDocument(): Document {
+  try {
+    if (window && window.top && window.top.document) return window.top.document;
+  } catch (e) { }
+  return document;
+}
 
-// This function calls the python function "start_timer", which takes in no arguments and returns nothing.
-// It starts a (python) timer which eventually emits the event 'timer_event'
-const startTimer = callable<[], void>("start_timer");
+function createCenterCircle() {
+  const topDoc = _getTopDocument();
+  if (!topDoc) return;
+  if (topDoc.getElementById(DOT_ID)) return;
+
+  const el = topDoc.createElement("div");
+  el.id = DOT_ID;
+
+  Object.assign(el.style, {
+    position: "fixed",
+    left: "50%",
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "120px",
+    height: "120px",
+    border: "8px solid rgba(0,123,255,1)",
+    borderRadius: "50%",
+    pointerEvents: "none",
+    zIndex: (2147483647).toString(),
+    boxSizing: "border-box",
+    background: "transparent",
+    display: "block",
+    visibility: "visible",
+    transition: "box-shadow 180ms linear, transform 120ms linear, opacity 180ms linear",
+    opacity: "1",
+    mixBlendMode: "screen"
+  } as Partial<CSSStyleDeclaration>);
+
+  try {
+    if ((el as any).animate) {
+      (el as any).animate(
+        [
+          {
+            boxShadow: "0 0 6px rgba(0,123,255,0.35)",
+            transform: "translate(-50%, -50%) scale(0.98)"
+          },
+          {
+            boxShadow: "0 0 20px rgba(0,123,255,0.75)",
+            transform: "translate(-50%, -50%) scale(1.03)"
+          },
+          {
+            boxShadow: "0 0 6px rgba(0,123,255,0.35)",
+            transform: "translate(-50%, -50%) scale(0.98)"
+          }
+        ],
+        { duration: 1200, iterations: Infinity }
+      );
+    }
+  } catch (e) { }
+
+  const appendTarget = topDoc.body || topDoc.documentElement || topDoc;
+  appendTarget.appendChild(el);
+
+  setTimeout(() => {
+    try {
+      if (!topDoc.getElementById(DOT_ID)) {
+        appendTarget.appendChild(el);
+      }
+    } catch (e) { }
+  }, 300);
+}
+
+function removeCenterCircle() {
+  try {
+    const topDoc = _getTopDocument();
+    const el = topDoc && topDoc.getElementById(DOT_ID);
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  } catch (e) { }
+}
 
 function Content() {
-  const [result, setResult] = useState<number | undefined>();
+  const [enabled, setEnabled] = useState(false);
+  const [status, setStatus] = useState("Off");
 
-  const onClick = async () => {
-    const result = await add(Math.random(), Math.random());
-    setResult(result);
-  };
+  useEffect(() => {
+    if (enabled) {
+      createCenterCircle();
+      setStatus("On");
+    } else {
+      removeCenterCircle();
+      setStatus("Off");
+    }
+    return () => {
+      removeCenterCircle();
+    };
+  }, [enabled]);
+
+  const onTurnOn = () => setEnabled(true);
+  const onTurnOff = () => setEnabled(false);
+  const onToggle = () => setEnabled((v) => !v);
 
   return (
-    <PanelSection title="Panel Section">
+    <PanelSection title="Shakeera Plugin Menu">
       <PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={onClick}
-        >
-          {result ?? "Add two numbers via Python"}
-        </ButtonItem>
+        <div>Options</div>
       </PanelSectionRow>
+
       <PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={() => startTimer()}
-        >
-          {"Start Python timer"}
+        <ButtonItem layout="below" onClick={onTurnOn}>
+          Turn ON
         </ButtonItem>
       </PanelSectionRow>
 
-      {/* <PanelSectionRow>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <img src={logo} />
-        </div>
-      </PanelSectionRow> */}
-
-      {/*<PanelSectionRow>
-        <ButtonItem
-          layout="below"
-          onClick={() => {
-            Navigation.Navigate("/decky-plugin-test");
-            Navigation.CloseSideMenus();
-          }}
-        >
-          Router
+      <PanelSectionRow>
+        <ButtonItem layout="below" onClick={onTurnOff}>
+          Turn OFF
         </ButtonItem>
-      </PanelSectionRow>*/}
+      </PanelSectionRow>
+
+      <PanelSectionRow>
+        <ButtonItem layout="below" onClick={onToggle}>
+          Toggle
+        </ButtonItem>
+      </PanelSectionRow>
+
+      <PanelSectionRow>
+        <div>Current status: {status}</div>
+      </PanelSectionRow>
     </PanelSection>
   );
-};
+}
 
-export default definePlugin(() => {
-  console.log("Template plugin initializing, this is called once on frontend startup")
-
-  // serverApi.routerHook.addRoute("/decky-plugin-test", DeckyPluginRouterTest, {
-  //   exact: true,
-  // });
-
-  // Add an event listener to the "timer_event" event from the backend
-  const listener = addEventListener<[
-    test1: string,
-    test2: boolean,
-    test3: number
-  ]>("timer_event", (test1, test2, test3) => {
-    console.log("Template got timer_event with:", test1, test2, test3)
-    toaster.toast({
-      title: "template got timer_event",
-      body: `${test1}, ${test2}, ${test3}`
-    });
-  });
-
-  return {
-    // The name shown in various decky menus
-    name: "Test Plugin",
-    // The element displayed at the top of your plugin's menu
-    titleView: <div className={staticClasses.Title}>Decky Example Plugin</div>,
-    // The content of your plugin's menu
-    content: <Content />,
-    // The icon displayed in the plugin list
-    icon: <FaShip />,
-    // The function triggered when your plugin unloads
-    onDismount() {
-      console.log("Unloading")
-      removeEventListener("timer_event", listener);
-      // serverApi.routerHook.removeRoute("/decky-plugin-test");
-    },
-  };
-});
+export default definePlugin(() => ({
+  name: "Shakeera Center",
+  titleView: <div className={staticClasses.Title}>Shakeera Center</div>,
+  content: <Content />,
+  icon: <FaAlignCenter />,
+}));
