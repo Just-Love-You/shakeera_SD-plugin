@@ -1,9 +1,18 @@
-# we support images for building with a vanilla SteamOS base,
-# or versions with ootb support for rust or go
-# developers can also customize these images via this Dockerfile
-#FROM ghcr.io/steamdeckhomebrew/holo-toolchain-rust:latest
-#FROM ghcr.io/steamdeckhomebrew/holo-toolchain-go:latest
-FROM ghcr.io/steamdeckhomebrew/holo-base:latest
+# backend/Dockerfile
+# Build in Steam Runtime (Soldier) so the binary matches Deck's userspace
+FROM --platform=linux/amd64 registry.gitlab.steamos.cloud/steamrt/soldier/sdk:latest
 
-# entrypoint.sh should always be located in the backend folder
-ENTRYPOINT [ "/backend/entrypoint.sh" ]
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Tools + SDL2 headers for build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    libsdl2-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /backend
+COPY . /backend
+
+# entrypoint compiles with Makefile and copies /backend/shakeera-overlay to /out if mounted
+ENTRYPOINT ["/backend/entrypoint.sh"]

@@ -3,6 +3,8 @@
   "author": "Andrii H.",
   "flags": [],
   "api_version": 1,
+  "main": "dist/index.js",
+  "backend": "main.py",
   "publish": {
     "tags": [],
     "description": "Decky example plugin.",

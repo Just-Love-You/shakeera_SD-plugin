@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 ROOT="$(pwd)"
 OUTDIR="$ROOT/plugin-out"
 PLUGINDIR_NAME="Shakeera" 
@@ -24,6 +25,9 @@ mkdir -p "$OUTDIR/$PLUGINDIR_NAME"
 
 cp -r "$ROOT/dist" "$OUTDIR/$PLUGINDIR_NAME/dist"
 cp -f "$ROOT/plugin.json" "$OUTDIR/$PLUGINDIR_NAME/"
+[ -f "$ROOT/backend/src/main.py" ] && cp -f "$ROOT/backend/src/main.py" "$OUTDIR/$PLUGINDIR_NAME/main.py"
+[ -d "$ROOT/bin" ] && cp -r "$ROOT/bin" "$OUTDIR/$PLUGINDIR_NAME/bin"
+
 [ -f "$ROOT/package.json" ] && cp -f "$ROOT/package.json" "$OUTDIR/$PLUGINDIR_NAME/"
 [ -f "$ROOT/README.md" ] && cp -f "$ROOT/README.md" "$OUTDIR/$PLUGINDIR_NAME/"
 [ -f "$ROOT/LICENSE" ] && cp -f "$ROOT/LICENSE" "$OUTDIR/$PLUGINDIR_NAME/"

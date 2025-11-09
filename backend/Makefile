@@ -1,14 +1,13 @@
-# This is the default target, which will be built when 
-# you invoke make
-.PHONY: all
-all: hello
+CC = gcc
+CFLAGS = -O2 -Wall
+LDFLAGS = `sdl2-config --cflags --libs`
+SRC = overlay.c
+OUT = shakeera-overlay
 
-# This rule tells make how to build hello from hello.cpp
-hello:
-	mkdir -p ./out
-	gcc -o ./out/hello ./src/main.c 
+all: $(OUT)
 
-# This rule tells make to delete hello and hello.o
-.PHONY: clean 
+$(OUT): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(OUT) $(LDFLAGS)
+
 clean:
-	rm -f hello
+	rm -f $(OUT)
