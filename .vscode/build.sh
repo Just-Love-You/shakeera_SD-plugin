@@ -39,3 +39,14 @@ zip -r "../$ZIPNAME" "$PLUGINDIR_NAME"
 cd "$ROOT"
 
 echo "Created --> $ZIPNAME in $ROOT"
+
+# Default ssh connect path
+DECK_HOST="deck@steamdeck.local"
+
+# Legacy IP 
+# DECK_HOST="deck@192.168.3.82" 
+
+DECK_PATH="/home/deck/Downloads"
+
+scp "./$ZIPNAME" "$DECK_HOST:$DECK_PATH/" || echo "⚠️ Could not upload to $DECK_HOST"
+echo "Uploaded to $DECK_HOST:$DECK_PATH/$ZIPNAME"
